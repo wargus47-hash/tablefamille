@@ -60,25 +60,31 @@ export function generateWeekPlan(profile) {
   for (const day of DAYS) {
     const history = [...usedIds]
 
+    const MEAL_CATEGORIES = ['plat', 'salade', 'soupe']
+    const isMeal = r => MEAL_CATEGORIES.includes(r.category)
+
     // Déjeuner
     const lunchCandidates = RECIPES
+      .filter(isMeal)
       .map(r => ({ recipe: r, score: scoreRecipe(r, { ...profile, history }) }))
       .filter(x => x.score > 0)
       .sort((a, b) => b.score - a.score)
 
-    const lunch = lunchCandidates[0]?.recipe || RECIPES[Math.floor(Math.random() * RECIPES.length)]
+    const lunch = lunchCandidates[0]?.recipe || RECIPES.filter(isMeal)[Math.floor(Math.random() * RECIPES.filter(isMeal).length)]
     usedIds.add(lunch.id)
 
-    // Dîner (max 20 min les soirs de semaine, sauf weekend)
+    // Dîner (max 30 min les soirs de semaine, sauf weekend)
     const isWeekend = day === 'Samedi' || day === 'Dimanche'
     const dinnerConstraints = { ...profile, history: [...usedIds], maxTime: isWeekend ? 999 : 30 }
 
     const dinnerCandidates = RECIPES
+      .filter(isMeal)
       .map(r => ({ recipe: r, score: scoreRecipe(r, dinnerConstraints) }))
       .filter(x => x.score > 0)
       .sort((a, b) => b.score - a.score)
 
-    const dinner = dinnerCandidates[0]?.recipe || RECIPES[Math.floor(Math.random() * RECIPES.length)]
+    const mealPool = RECIPES.filter(isMeal)
+    const dinner = dinnerCandidates[0]?.recipe || mealPool[Math.floor(Math.random() * mealPool.length)]
     usedIds.add(dinner.id)
 
     plan[day] = { lunch: lunch.id, dinner: dinner.id }
