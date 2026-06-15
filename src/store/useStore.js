@@ -30,26 +30,43 @@ export const useStore = create(
         profile: { ...s.profile, members: s.profile.members.filter(m => m.id !== id) },
       })),
 
+      // ── Custom Recipes ────────────────────────────────────────────────
+      customRecipes: [],
+      addCustomRecipe: (recipe) => set(s => ({
+        customRecipes: [...s.customRecipes, { id: `cr${Date.now()}`, ...recipe }],
+      })),
+      updateCustomRecipe: (id, updates) => set(s => ({
+        customRecipes: s.customRecipes.map(r => r.id === id ? { ...r, ...updates } : r),
+      })),
+      deleteCustomRecipe: (id) => set(s => ({
+        customRecipes: s.customRecipes.filter(r => r.id !== id),
+        favorites: s.favorites.filter(f => f !== id),
+      })),
+
       // ── Weekly Plan ──────────────────────────────────────────────────
       weekPlan: null,
       estimatedBudget: 0,
       generatePlan: () => {
-        const plan = generateWeekPlan(get().profile)
-        const budget = estimateBudget(plan)
-        const { profile, totalSavedEver } = get()
+        const { profile, customRecipes, totalSavedEver } = get()
+        const plan = generateWeekPlan(profile, customRecipes)
+        const budget = estimateBudget(plan, customRecipes)
         const nbPersons = profile.members.length || 1
         const restaurantCost = 14 * 12 * nbPersons
         const saving = Math.max(0, restaurantCost - budget)
         set({
           weekPlan: plan,
-          shoppingList: generateShoppingList(plan),
+          shoppingList: generateShoppingList(plan, [], customRecipes),
           estimatedBudget: budget,
           totalSavedEver: (totalSavedEver || 0) + saving,
         })
       },
       setMealForDay: (day, meal, recipeId) => set(s => {
         const newPlan = { ...s.weekPlan, [day]: { ...s.weekPlan[day], [meal]: recipeId } }
-        return { weekPlan: newPlan, shoppingList: generateShoppingList(newPlan), estimatedBudget: estimateBudget(newPlan) }
+        return {
+          weekPlan: newPlan,
+          shoppingList: generateShoppingList(newPlan, [], s.customRecipes),
+          estimatedBudget: estimateBudget(newPlan, s.customRecipes),
+        }
       }),
 
       // ── Shopping ─────────────────────────────────────────────────────
@@ -63,6 +80,7 @@ export const useStore = create(
           ),
         },
       })),
+      clearShoppingList: () => set({ shoppingList: {} }),
       addToPantry: (name) => set(s => ({ pantry: [...new Set([...s.pantry, name.toLowerCase()])] })),
       removeFromPantry: (name) => set(s => ({ pantry: s.pantry.filter(p => p !== name.toLowerCase()) })),
 

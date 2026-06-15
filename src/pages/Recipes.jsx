@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { RECIPES } from '../data/recipes'
 import { useStore } from '../store/useStore'
 import { Link } from 'react-router-dom'
-import { Search, Grid3X3, List, Heart, Clock, Euro } from 'lucide-react'
+import { Search, Grid3X3, List, Heart, Clock, Euro, Plus } from 'lucide-react'
 import clsx from 'clsx'
 
 const CUISINE_FILTERS = [
@@ -48,9 +48,14 @@ function getGradient(recipe) {
 
 function RecipeGridCard({ recipe, isFavorite, onToggleFav }) {
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 group">
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 group relative">
+      {recipe._custom && (
+        <div className="absolute top-2 left-2 z-10 bg-primary-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+          Ma recette
+        </div>
+      )}
       <Link to={`/recipes/${recipe.id}`}>
-        <div className={`bg-gradient-to-br ${getGradient(recipe)} flex items-center justify-center py-7 relative`}>
+        <div className={`bg-gradient-to-br ${getGradient(recipe)} flex items-center justify-center py-7`}>
           <span className="text-5xl group-hover:scale-110 transition-transform">{recipe.emoji}</span>
         </div>
         <div className="p-3">
@@ -65,8 +70,7 @@ function RecipeGridCard({ recipe, isFavorite, onToggleFav }) {
         </div>
       </Link>
       <button onClick={() => onToggleFav(recipe.id)}
-        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm"
-        style={{ position: 'absolute' }}>
+        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm">
         <Heart size={14} className={isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-300'} />
       </button>
     </div>
@@ -104,15 +108,20 @@ function RecipeListCard({ recipe, isFavorite, onToggleFav }) {
 }
 
 export default function Recipes() {
-  const { favorites, toggleFavorite } = useStore()
+  const { favorites, toggleFavorite, customRecipes } = useStore()
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [maxTime, setMaxTime] = useState(120)
   const [gridView, setGridView] = useState(true)
   const [showFavOnly, setShowFavOnly] = useState(false)
 
+  const allRecipes = useMemo(() => [
+    ...customRecipes.map(r => ({ ...r, _custom: true })),
+    ...RECIPES,
+  ], [customRecipes])
+
   const filtered = useMemo(() => {
-    return RECIPES.filter(r => {
+    return allRecipes.filter(r => {
       const matchSearch = r.name.toLowerCase().includes(search.toLowerCase()) ||
         r.tags.some(t => t.includes(search.toLowerCase()))
       const matchFilter = activeFilter === 'all' ||
@@ -121,7 +130,7 @@ export default function Recipes() {
       const matchFav = !showFavOnly || favorites.includes(r.id)
       return matchSearch && matchFilter && matchTime && matchFav
     })
-  }, [search, activeFilter, maxTime, showFavOnly, favorites])
+  }, [search, activeFilter, maxTime, showFavOnly, favorites, allRecipes])
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -175,11 +184,17 @@ export default function Recipes() {
         </div>
       </div>
 
-      {/* Count */}
-      <p className="text-xs text-gray-400 font-medium">
-        {filtered.length} recette{filtered.length > 1 ? 's' : ''}
-        {showFavOnly ? ' ❤️ favorites' : ''}
-      </p>
+      {/* Count + add button */}
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-400 font-medium">
+          {filtered.length} recette{filtered.length > 1 ? 's' : ''}
+          {customRecipes.length > 0 && <span className="ml-1 text-primary-400">· {customRecipes.length} personnelle{customRecipes.length > 1 ? 's' : ''}</span>}
+        </p>
+        <Link to="/recipes/new"
+          className="flex items-center gap-1.5 bg-primary-500 text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-primary-600 active:scale-95 transition-all">
+          <Plus size={12} /> Ma recette
+        </Link>
+      </div>
 
       {/* Grid or list */}
       {filtered.length > 0 ? (

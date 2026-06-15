@@ -10,6 +10,7 @@ import Shopping from './pages/Shopping'
 import Profile from './pages/Profile'
 import RecipeDetail from './pages/RecipeDetail'
 import FrigoMagique from './pages/FrigoMagique'
+import AddRecipe from './pages/AddRecipe'
 
 export default function App() {
   const { onboardingDone, cookingRecipeId } = useStore()
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="planner" element={<Planner />} />
           <Route path="frigo" element={<FrigoMagique />} />
           <Route path="recipes" element={<Recipes />} />
+          <Route path="recipes/new" element={<AddRecipe />} />
           <Route path="recipes/:id" element={<RecipeDetail />} />
           <Route path="shopping" element={<Shopping />} />
           <Route path="profile" element={<Profile />} />

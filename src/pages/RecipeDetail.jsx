@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { RECIPE_MAP } from '../data/recipes'
 import { useStore } from '../store/useStore'
-import { ArrowLeft, Heart, Star, ChefHat, Clock, Users, Euro, Play, Share2, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, Heart, Star, ChefHat, Clock, Users, Euro, Play, Share2, Minus, Plus, Trash2, Pencil } from 'lucide-react'
 import clsx from 'clsx'
 
 const DIFF_LABEL = ['', 'Facile', 'Moyen', 'Avancé']
@@ -43,12 +43,23 @@ function NutrBar({ label, value, max, color }) {
 export default function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const recipe = RECIPE_MAP[id]
-  const { ratings, rateRecipe, favorites, toggleFavorite, startCooking, profile } = useStore()
+  const { ratings, rateRecipe, favorites, toggleFavorite, startCooking, customRecipes, deleteCustomRecipe } = useStore()
+
+  const baseRecipe = RECIPE_MAP[id]
+  const customRecipe = customRecipes.find(r => r.id === id)
+  const recipe = baseRecipe || customRecipe
+  const isCustom = !!customRecipe
+
   const [servings, setServings] = useState(recipe?.servings || 4)
   const [completedSteps, setCompletedSteps] = useState(new Set())
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   if (!recipe) return <div className="text-center py-20 text-gray-400">Recette introuvable</div>
+
+  const handleDelete = () => {
+    deleteCustomRecipe(id)
+    navigate('/recipes')
+  }
 
   const ratio = servings / recipe.servings
   const isFav = favorites.includes(recipe.id)
@@ -82,6 +93,12 @@ export default function RecipeDetail() {
             <ArrowLeft size={18} />
           </button>
           <div className="flex gap-2">
+            {isCustom && (
+              <button onClick={() => setShowDeleteConfirm(true)}
+                className="p-2 rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-red-400/40 transition-colors">
+                <Trash2 size={18} />
+              </button>
+            )}
             <button onClick={shareRecipe}
               className="p-2 rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors">
               <Share2 size={18} />
@@ -93,6 +110,11 @@ export default function RecipeDetail() {
           </div>
         </div>
         <div className="flex flex-col items-center py-8">
+          {isCustom && (
+            <span className="bg-white/30 text-white text-[10px] font-bold px-2.5 py-1 rounded-full mb-3 backdrop-blur-sm">
+              ✏️ Ma recette
+            </span>
+          )}
           <span className="text-8xl mb-3 drop-shadow-lg">{recipe.emoji}</span>
           <h1 className="text-white font-extrabold text-xl text-center px-4 leading-tight">{recipe.name}</h1>
           <div className="flex gap-2 mt-3 flex-wrap justify-center px-4">
@@ -212,6 +234,33 @@ export default function RecipeDetail() {
         </div>
         {rating && <p className="text-xs text-gray-400 mt-2">Note : {rating}/5</p>}
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-6"
+          onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-pop"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-center w-14 h-14 bg-red-50 rounded-2xl mx-auto mb-4">
+              <Trash2 size={24} className="text-red-400" />
+            </div>
+            <h2 className="text-lg font-extrabold text-gray-900 text-center mb-1">Supprimer cette recette ?</h2>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              "{recipe.name}" sera supprimée définitivement.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleDelete}
+                className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 active:scale-95 transition-all">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
