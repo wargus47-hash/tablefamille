@@ -5,7 +5,8 @@ const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dima
 
 // Score une recette selon le profil famille et les contraintes
 function scoreRecipe(recipe, { members, weekBudget, maxTime, history = [] }) {
-  let score = 100
+  // Bruit aléatoire pour que chaque génération donne un résultat différent
+  let score = 100 + Math.random() * 40
 
   // Filtre saison (bonus si en saison)
   const season = getCurrentSeason()
