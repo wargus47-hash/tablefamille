@@ -9,6 +9,7 @@ import Recipes from './pages/Recipes'
 import Shopping from './pages/Shopping'
 import Profile from './pages/Profile'
 import RecipeDetail from './pages/RecipeDetail'
+import FrigoMagique from './pages/FrigoMagique'
 
 export default function App() {
   const { onboardingDone, cookingRecipeId } = useStore()
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="planner" element={<Planner />} />
+          <Route path="frigo" element={<FrigoMagique />} />
           <Route path="recipes" element={<Recipes />} />
           <Route path="recipes/:id" element={<RecipeDetail />} />
           <Route path="shopping" element={<Shopping />} />

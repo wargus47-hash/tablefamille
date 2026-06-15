@@ -7,6 +7,7 @@ const DEFAULT_PROFILE = {
     { id: 'm1', name: 'Moi', age: 35, avatar: '🧑', likes: [], dislikes: [], allergies: [], isPresent: true },
   ],
   weekBudget: 80,
+  calorieGoal: 2000,
 }
 
 export const useStore = create(
@@ -34,7 +35,17 @@ export const useStore = create(
       estimatedBudget: 0,
       generatePlan: () => {
         const plan = generateWeekPlan(get().profile)
-        set({ weekPlan: plan, shoppingList: generateShoppingList(plan), estimatedBudget: estimateBudget(plan) })
+        const budget = estimateBudget(plan)
+        const { profile, totalSavedEver } = get()
+        const nbPersons = profile.members.length || 1
+        const restaurantCost = 14 * 12 * nbPersons
+        const saving = Math.max(0, restaurantCost - budget)
+        set({
+          weekPlan: plan,
+          shoppingList: generateShoppingList(plan),
+          estimatedBudget: budget,
+          totalSavedEver: (totalSavedEver || 0) + saving,
+        })
       },
       setMealForDay: (day, meal, recipeId) => set(s => {
         const newPlan = { ...s.weekPlan, [day]: { ...s.weekPlan[day], [meal]: recipeId } }
@@ -55,6 +66,10 @@ export const useStore = create(
       addToPantry: (name) => set(s => ({ pantry: [...new Set([...s.pantry, name.toLowerCase()])] })),
       removeFromPantry: (name) => set(s => ({ pantry: s.pantry.filter(p => p !== name.toLowerCase()) })),
 
+      // ── Frigo Magique ─────────────────────────────────────────────────
+      fridgeItems: [],
+      setFridgeItems: (items) => set({ fridgeItems: items }),
+
       // ── Favorites ────────────────────────────────────────────────────
       favorites: [],
       toggleFavorite: (id) => set(s => ({
@@ -68,7 +83,10 @@ export const useStore = create(
       // ── Cooking Mode ─────────────────────────────────────────────────
       cookingRecipeId: null,
       cookingStep: 0,
-      startCooking: (id) => set({ cookingRecipeId: id, cookingStep: 0 }),
+      startCooking: (id) => {
+        set({ cookingRecipeId: id, cookingStep: 0 })
+        set(s => ({ totalMealsPrepared: (s.totalMealsPrepared || 0) + 1 }))
+      },
       stopCooking: () => set({ cookingRecipeId: null, cookingStep: 0 }),
       nextStep: () => set(s => ({ cookingStep: s.cookingStep + 1 })),
       prevStep: () => set(s => ({ cookingStep: Math.max(0, s.cookingStep - 1) })),
@@ -76,6 +94,8 @@ export const useStore = create(
       // ── History & Streak ─────────────────────────────────────────────
       mealHistory: [],
       streak: 0,
+      totalMealsPrepared: 0,
+      totalSavedEver: 0,
       addToHistory: (recipeId) => {
         const today = new Date().toDateString()
         set(s => {

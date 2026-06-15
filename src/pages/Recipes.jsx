@@ -10,14 +10,18 @@ const CUISINE_FILTERS = [
   { key: 'rapide', label: '⚡ Rapides' },
   { key: 'végétarien', label: '🥦 Végé' },
   { key: 'enfants', label: '👶 Kids' },
+  { key: 'français', label: '🇫🇷 Français' },
   { key: 'asiatique', label: '🥢 Asie' },
+  { key: 'indien', label: '🪔 Inde' },
   { key: 'méditerranéen', label: '🫒 Médit.' },
   { key: 'mexicain', label: '🌮 Mexique' },
   { key: 'américain', label: '🍔 Amérique' },
   { key: 'africain', label: '🌍 Afrique' },
-  { key: 'dessert', label: '🍫 Desserts' },
+  { key: 'moyen-orient', label: '🕌 Orient' },
   { key: 'économique', label: '💰 Éco' },
   { key: 'réconfort', label: '🤗 Réconfort' },
+  { key: 'poisson', label: '🐟 Poisson' },
+  { key: 'dessert', label: '🍫 Desserts' },
 ]
 
 const DIFF_LABELS = ['', '⭐ Facile', '⭐⭐ Moyen', '⭐⭐⭐ Avancé']
@@ -27,8 +31,11 @@ const CUISINE_GRADIENTS = {
   mexicain: 'from-yellow-50 to-orange-50',
   américain: 'from-blue-50 to-indigo-50',
   africain: 'from-amber-50 to-orange-50',
-  français: 'from-blue-50 to-white',
+  français: 'from-blue-50 to-sky-50',
+  indien: 'from-orange-50 to-yellow-50',
+  'moyen-orient': 'from-emerald-50 to-teal-50',
   végétarien: 'from-green-50 to-emerald-50',
+  poisson: 'from-cyan-50 to-blue-50',
   dessert: 'from-purple-50 to-pink-50',
 }
 
